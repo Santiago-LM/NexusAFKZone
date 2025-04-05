@@ -1,0 +1,4 @@
+name: NexusAFKZone
+version: '1.0-SNAPSHOT'
+main: nexus.nexusAFKZone.NexusAFKZone
+api-version: '1.20'
