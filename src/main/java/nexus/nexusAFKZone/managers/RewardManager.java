@@ -1,6 +1,8 @@
 package nexus.nexusAFKZone.managers;
 
 import nexus.nexusAFKZone.NexusAFKZone;
+import nexus.nexusAFKZone.utils.MessageUtils;
+import nexus.nexusAFKZone.utils.TimeFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -45,7 +47,8 @@ public class RewardManager {
                         for (String reward : plugin.getConfig().getStringList("default-rewards")) {
                             giveReward(player, reward);
                         }
-                        player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("reward-message"), afkTime));
+                        String formattedTime = TimeFormat.formatTime(afkTime);
+                        player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("reward-message"), formattedTime));
                         playerAFKTime.put(playerUUID, System.currentTimeMillis());
                     }
                 }

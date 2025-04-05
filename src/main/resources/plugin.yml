@@ -1,11 +1,12 @@
 name: NexusAFKZone
 main: nexus.nexusAFKZone.NexusAFKZone
 version: 1.0
-api-version: 1.16
+api-version: 1.20
 commands:
   afkzone:
     description: AFK Zone commands
-    usage: /afkzone <subcommand>
+    usage: /afkzone <subcommand> [arguments]
+    aliases: [afkz]
 permissions:
   nexusafkzone.command.create:
     description: Allows creating an AFK zone
@@ -19,6 +20,6 @@ permissions:
   nexusafkzone.command.list:
     description: Allows listing all AFK zones
     default: op
-  nexusafkzone.zone.<zonename>:
-    description: Permission to enter specific AFK zone
+  nexusafkzone.zone:
+    description: Base permission for AFK zones
     default: op

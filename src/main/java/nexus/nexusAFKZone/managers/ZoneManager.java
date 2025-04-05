@@ -3,6 +3,7 @@ package nexus.nexusAFKZone.managers;
 import nexus.nexusAFKZone.NexusAFKZone;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +29,12 @@ public class ZoneManager {
         List<String> zones = new ArrayList<>();
 
         if (zoneFolder.exists() && zoneFolder.isDirectory()) {
-            for (File file : zoneFolder.listFiles()) {
-                if (file.isFile() && file.getName().endsWith(".yml")) {
-                    zones.add(file.getName().replace(".yml", ""));
+            File[] files = zoneFolder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().endsWith(".yml")) {
+                        zones.add(file.getName().replace(".yml", ""));
+                    }
                 }
             }
         }
@@ -62,11 +66,20 @@ public class ZoneManager {
         YamlConfiguration config = new YamlConfiguration();
         config.set("enabled", true);
         config.set("permission", "nexusafkzone.zone." + zoneName);
-        config.set("pos1.world", positions[0].getWorld().getName());
+
+        String pos1WorldName = positions[0].getWorld() != null ? positions[0].getWorld().getName() : null;
+        String pos2WorldName = positions[1].getWorld() != null ? positions[1].getWorld().getName() : null;
+
+        if (pos1WorldName == null || pos2WorldName == null) {
+            player.sendMessage("Error: One or both positions have an invalid world.");
+            return;
+        }
+
+        config.set("pos1.world", pos1WorldName);
         config.set("pos1.x", positions[0].getX());
         config.set("pos1.y", positions[0].getY());
         config.set("pos1.z", positions[0].getZ());
-        config.set("pos2.world", positions[1].getWorld().getName());
+        config.set("pos2.world", pos2WorldName);
         config.set("pos2.x", positions[1].getX());
         config.set("pos2.y", positions[1].getY());
         config.set("pos2.z", positions[1].getZ());
@@ -80,8 +93,36 @@ public class ZoneManager {
             config.save(zoneFile);
             player.sendMessage("Zone " + zoneName + " created successfully.");
         } catch (IOException e) {
-            player.sendMessage("An error occurred while creating the zone.");
-            e.printStackTrace();
+            plugin.getLogger().severe("An error occurred while creating the zone: " + e.getMessage());
         }
+    }
+
+    public Location[] getZoneBounds(String zoneName) {
+        File zoneFile = new File(plugin.getDataFolder() + "/Zones", zoneName + ".yml");
+        if (!zoneFile.exists()) {
+            return null;
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(zoneFile);
+        String worldName1 = config.getString("pos1.world");
+        String worldName2 = config.getString("pos2.world");
+        if (worldName1 == null || worldName2 == null) {
+            return null;
+        }
+
+        Location pos1 = new Location(
+                plugin.getServer().getWorld(worldName1),
+                config.getDouble("pos1.x"),
+                config.getDouble("pos1.y"),
+                config.getDouble("pos1.z")
+        );
+        Location pos2 = new Location(
+                plugin.getServer().getWorld(worldName2),
+                config.getDouble("pos2.x"),
+                config.getDouble("pos2.y"),
+                config.getDouble("pos2.z")
+        );
+
+        return new Location[]{pos1, pos2};
     }
 }

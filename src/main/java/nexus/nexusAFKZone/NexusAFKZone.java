@@ -8,12 +8,18 @@ import nexus.nexusAFKZone.listeners.AFKListener;
 import nexus.nexusAFKZone.listeners.SelectionListener;
 import nexus.nexusAFKZone.managers.ZoneManager;
 import nexus.nexusAFKZone.managers.RewardManager;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public final class NexusAFKZone extends JavaPlugin {
 
     private ZoneManager zoneManager;
     private RewardManager rewardManager;
+    private FileConfiguration messagesConfig;
 
     @Override
     public void onEnable() {
@@ -28,11 +34,11 @@ public final class NexusAFKZone extends JavaPlugin {
         zoneManager = new ZoneManager(this);
         rewardManager = new RewardManager(this);
 
+        // Load messages config
+        reloadMessagesConfig();
+
         // Register commands
-        this.getCommand("afkzone").setExecutor(new ZoneCreateCommand(this));
-        this.getCommand("afkzone").setExecutor(new DeleteCommand(this));
-        this.getCommand("afkzone").setExecutor(new ReloadCommand(this));
-        this.getCommand("afkzone").setExecutor(new ListCommand(this));
+        registerCommands();
 
         // Register listeners
         getServer().getPluginManager().registerEvents(new AFKListener(this), this);
@@ -45,11 +51,50 @@ public final class NexusAFKZone extends JavaPlugin {
         getLogger().info("NexusAFKZone disabled.");
     }
 
+    private void registerCommands() {
+        PluginCommand afkzoneCommand = getCommand("afkzone");
+        if (afkzoneCommand != null) {
+            ZoneCreateCommand createCommand = new ZoneCreateCommand(this);
+            DeleteCommand deleteCommand = new DeleteCommand(this);
+            ReloadCommand reloadCommand = new ReloadCommand(this);
+            ListCommand listCommand = new ListCommand(this);
+
+            afkzoneCommand.setExecutor((sender, command, label, args) -> {
+                if (args.length > 0) {
+                    return switch (args[0].toLowerCase()) {
+                        case "create" -> createCommand.onCommand(sender, command, label, args);
+                        case "delete" -> deleteCommand.onCommand(sender, command, label, args);
+                        case "reload" -> reloadCommand.onCommand(sender, command, label, args);
+                        case "list" -> listCommand.onCommand(sender, command, label, args);
+                        default -> {
+                            sender.sendMessage("Unknown subcommand. Use /afkzone <create|delete|reload|list>.");
+                            yield false;
+                        }
+                    };
+                } else {
+                    sender.sendMessage("Usage: /afkzone <create|delete|reload|list>");
+                    return false;
+                }
+            });
+        } else {
+            getLogger().severe("Failed to register commands. Please check your plugin.yml.");
+        }
+    }
+
     public ZoneManager getZoneManager() {
         return zoneManager;
     }
 
     public RewardManager getRewardManager() {
         return rewardManager;
+    }
+
+    public FileConfiguration getMessagesConfig() {
+        return messagesConfig;
+    }
+
+    public void reloadMessagesConfig() {
+        File messagesFile = new File(getDataFolder(), "messages.yml");
+        messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
     }
 }
