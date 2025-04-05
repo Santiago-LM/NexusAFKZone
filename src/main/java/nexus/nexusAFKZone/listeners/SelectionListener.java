@@ -2,6 +2,7 @@ package nexus.nexusAFKZone.listeners;
 
 import nexus.nexusAFKZone.NexusAFKZone;
 import nexus.nexusAFKZone.managers.ZoneManager;
+import nexus.nexusAFKZone.utils.MessageUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -38,12 +39,18 @@ public class SelectionListener implements Listener {
             if (event.getAction().toString().contains("LEFT_CLICK")) {
                 selection[0] = clickedLocation;
                 zoneManager.setSelection(player, selection[0], selection[1]);
-                player.sendMessage("First position set to: " + formatLocation(clickedLocation));
+                player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("position-1-set")));
             } else if (event.getAction().toString().contains("RIGHT_CLICK")) {
                 selection[1] = clickedLocation;
                 zoneManager.setSelection(player, selection[0], selection[1]);
-                player.sendMessage("Second position set to: " + formatLocation(clickedLocation));
+                player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("position-2-set")));
             }
+
+            if (selection[0] != null && selection[1] != null) {
+                player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-confirmation"), formatLocation(selection[0]), formatLocation(selection[1])));
+                player.sendMessage("Type /afkzone confirm to finalize the AFK zone creation.");
+            }
+
             event.setCancelled(true);
         }
     }

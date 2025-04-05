@@ -1,6 +1,7 @@
 package nexus.nexusAFKZone;
 
 import nexus.nexusAFKZone.commands.ZoneCreateCommand;
+import nexus.nexusAFKZone.commands.ZoneConfirmCommand;
 import nexus.nexusAFKZone.commands.DeleteCommand;
 import nexus.nexusAFKZone.commands.ReloadCommand;
 import nexus.nexusAFKZone.commands.ListCommand;
@@ -55,6 +56,7 @@ public final class NexusAFKZone extends JavaPlugin {
         PluginCommand afkzoneCommand = getCommand("afkzone");
         if (afkzoneCommand != null) {
             ZoneCreateCommand createCommand = new ZoneCreateCommand(this);
+            ZoneConfirmCommand confirmCommand = new ZoneConfirmCommand(this);
             DeleteCommand deleteCommand = new DeleteCommand(this);
             ReloadCommand reloadCommand = new ReloadCommand(this);
             ListCommand listCommand = new ListCommand(this);
@@ -63,16 +65,17 @@ public final class NexusAFKZone extends JavaPlugin {
                 if (args.length > 0) {
                     return switch (args[0].toLowerCase()) {
                         case "create" -> createCommand.onCommand(sender, command, label, args);
+                        case "confirm" -> confirmCommand.onCommand(sender, command, label, args);
                         case "delete" -> deleteCommand.onCommand(sender, command, label, args);
                         case "reload" -> reloadCommand.onCommand(sender, command, label, args);
                         case "list" -> listCommand.onCommand(sender, command, label, args);
                         default -> {
-                            sender.sendMessage("Unknown subcommand. Use /afkzone <create|delete|reload|list>.");
+                            sender.sendMessage("Unknown subcommand. Use /afkzone <create|confirm|delete|reload|list>.");
                             yield false;
                         }
                     };
                 } else {
-                    sender.sendMessage("Usage: /afkzone <create|delete|reload|list>");
+                    sender.sendMessage("Usage: /afkzone <create|confirm|delete|reload|list>");
                     return false;
                 }
             });

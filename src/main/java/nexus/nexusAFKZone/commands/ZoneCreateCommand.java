@@ -28,7 +28,8 @@ public class ZoneCreateCommand implements CommandExecutor {
                 if (player.hasPermission("nexusafkzone.command.create")) {
                     String zoneName = args[1];
                     plugin.getZoneManager().createZone(player, zoneName);
-                    giveDefaultWand(player);
+                    giveDefaultWand(player, zoneName);
+                    player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-create-initiate"), zoneName));
                 } else {
                     player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("no-permission")));
                 }
@@ -41,7 +42,7 @@ public class ZoneCreateCommand implements CommandExecutor {
         return false;
     }
 
-    private void giveDefaultWand(Player player) {
+    private void giveDefaultWand(Player player, String zoneName) {
         String wandMaterialName = plugin.getConfig().getString("default-wand.material", "BLAZE_ROD");
         Material wandMaterial = Material.getMaterial(wandMaterialName.toUpperCase());
         if (wandMaterial == null) {
@@ -51,9 +52,10 @@ public class ZoneCreateCommand implements CommandExecutor {
         ItemStack wand = new ItemStack(wandMaterial);
         ItemMeta meta = wand.getItemMeta();
         if (meta != null) {
-            String displayName = plugin.getConfig().getString("default-wand.display-name", "&6AFK Zone Selector");
+            String displayName = MessageUtils.format(plugin.getConfig().getString("default-wand.display-name", "&6AFK Zone Selector"));
             meta.setDisplayName(displayName);
             List<String> lore = plugin.getConfig().getStringList("default-wand.lore");
+            lore.replaceAll(line -> MessageUtils.format(line.replace("%creation_zone_name%", zoneName)));
             meta.setLore(lore);
             wand.setItemMeta(meta);
         }

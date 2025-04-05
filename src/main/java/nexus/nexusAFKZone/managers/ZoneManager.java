@@ -88,6 +88,16 @@ public class ZoneManager {
         }
     }
 
+    public String confirmZone(String zoneName, Location pos1, Location pos2) {
+        zones.put(zoneName, new Location[]{pos1, pos2});
+        saveZone(zoneName, pos1, pos2);
+        return zoneName;
+    }
+
+    public void clearSelection(Player player) {
+        selections.remove(player.getUniqueId());
+    }
+
     public Location[] getZoneBounds(String zoneName) {
         return zones.get(zoneName);
     }
@@ -149,5 +159,43 @@ public class ZoneManager {
         }
 
         plugin.getLogger().info("Zones reloaded successfully.");
+    }
+
+    private void saveZone(String zoneName, Location pos1, Location pos2) {
+        File zoneFile = new File(plugin.getDataFolder() + "/Zones", zoneName + ".yml");
+
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("zone.name", zoneName);
+        config.set("enabled", true);
+        config.set("permission", "nexusafkzone.zone." + zoneName);
+
+        String pos1WorldName = pos1.getWorld() != null ? pos1.getWorld().getName() : null;
+        String pos2WorldName = pos2.getWorld() != null ? pos2.getWorld().getName() : null;
+
+        if (pos1WorldName == null || pos2WorldName == null) {
+            plugin.getLogger().warning("Error: One or both positions have an invalid world.");
+            return;
+        }
+
+        config.set("pos1.world", pos1WorldName);
+        config.set("pos1.x", pos1.getX());
+        config.set("pos1.y", pos1.getY());
+        config.set("pos1.z", pos1.getZ());
+        config.set("pos2.world", pos2WorldName);
+        config.set("pos2.x", pos2.getX());
+        config.set("pos2.y", pos2.getY());
+        config.set("pos2.z", pos2.getZ());
+        config.set("rewards", plugin.getConfig().getStringList("default-rewards"));
+        config.set("interval", plugin.getConfig().getInt("auto-save-interval"));
+        config.set("messages.bossbar", "&6AFK in %zone% | Next reward in: %time%");
+        config.set("messages.actionbar", "&a+%reward% in %time%");
+        config.set("messages.chat", "&eYou earned %reward%!");
+
+        try {
+            config.save(zoneFile);
+            plugin.getLogger().info("Zone " + zoneName + " saved successfully.");
+        } catch (IOException e) {
+            plugin.getLogger().severe("An error occurred while saving the zone: " + e.getMessage());
+        }
     }
 }
