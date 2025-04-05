@@ -43,7 +43,7 @@ public class AFKListener implements Listener {
 
             if (isInsideZone(to, pos1, pos2) && !isInsideZone(from, pos1, pos2)) {
                 player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-entered"), zoneName));
-                plugin.getRewardManager().setPlayerAFK(player);
+                plugin.getRewardManager().setPlayerAFK(player, zoneName); // Pass both player and zoneName
             } else if (!isInsideZone(to, pos1, pos2) && isInsideZone(from, pos1, pos2)) {
                 player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-exited"), zoneName));
                 plugin.getRewardManager().removePlayerAFK(player);

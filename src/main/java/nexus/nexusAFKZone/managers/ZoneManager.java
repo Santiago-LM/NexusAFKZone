@@ -27,7 +27,13 @@ public class ZoneManager {
     public boolean deleteZone(String zoneName) {
         zones.remove(zoneName);
         File zoneFile = new File(plugin.getDataFolder() + "/Zones", zoneName + ".yml");
-        return zoneFile.delete();
+        boolean result = zoneFile.delete();
+        if (result) {
+            plugin.getLogger().info("Zone " + zoneName + " deleted successfully.");
+        } else {
+            plugin.getLogger().warning("Failed to delete zone " + zoneName + ".");
+        }
+        return result;
     }
 
     public List<String> listZones() {
@@ -36,6 +42,7 @@ public class ZoneManager {
 
     public void setSelection(Player player, Location pos1, Location pos2) {
         selections.put(player.getUniqueId(), new Location[]{pos1, pos2});
+        plugin.getLogger().info("Selection set for player " + player.getName() + ": " + pos1 + ", " + pos2);
     }
 
     public Location[] getSelection(Player player) {
@@ -44,6 +51,7 @@ public class ZoneManager {
 
     public void setPendingZoneName(Player player, String zoneName) {
         pendingZoneNames.put(player.getUniqueId(), zoneName);
+        plugin.getLogger().info("Pending zone name set for player " + player.getName() + ": " + zoneName);
     }
 
     public String getPendingZoneName(Player player) {
@@ -52,6 +60,7 @@ public class ZoneManager {
 
     public void clearPendingZoneName(Player player) {
         pendingZoneNames.remove(player.getUniqueId());
+        plugin.getLogger().info("Pending zone name cleared for player " + player.getName());
     }
 
     public void createZone(Player player, String zoneName) {
@@ -72,6 +81,7 @@ public class ZoneManager {
         zones.put(zoneName, positions);
         clearPendingZoneName(player); // Clear the pending zone name after creation
         player.sendMessage("Zone " + zoneName + " created successfully.");
+        plugin.getLogger().info("Zone " + zoneName + " created by player " + player.getName());
     }
 
     public String confirmZone(Player player) {
@@ -92,6 +102,7 @@ public class ZoneManager {
 
     public void clearSelection(Player player) {
         selections.remove(player.getUniqueId());
+        plugin.getLogger().info("Selection cleared for player " + player.getName());
     }
 
     public Location[] getZoneBounds(String zoneName) {
@@ -100,6 +111,7 @@ public class ZoneManager {
 
     public void clearZones() {
         zones.clear();
+        plugin.getLogger().info("All zones cleared.");
     }
 
     public void loadZone(File zoneFile) {

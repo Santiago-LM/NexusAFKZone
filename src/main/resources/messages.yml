@@ -13,3 +13,7 @@ zone-create-initiate: "&aZone creation initiated. Use the wand to select the cor
 zone-confirmation: "&aZone positions set. First: %s, Second: %s."
 zone-create-success: "&aAFK zone '%s' created successfully."
 zone-create-failure: "&cFailed to create AFK zone. Ensure both positions are set."
+zone-save-success: "&aZone '%s' saved successfully."
+zone-save-failure: "&cAn error occurred while saving the zone '%s'."
+reward-interval-changed: "&aThe reward interval for the zone '%s' has been updated to %d seconds."
+general-error: "&cAn unexpected error occurred. Please try again later."
