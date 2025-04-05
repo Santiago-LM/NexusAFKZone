@@ -23,6 +23,7 @@ public class ReloadCommand implements CommandExecutor {
                 if (player.hasPermission("nexusafkzone.command.reload")) {
                     plugin.reloadConfig();
                     plugin.reloadMessagesConfig();
+                    plugin.getZoneManager().loadZones();
                     player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("config-reloaded")));
                 } else {
                     player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("no-permission")));

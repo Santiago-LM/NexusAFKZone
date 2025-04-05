@@ -13,33 +13,23 @@ public class ZoneManager {
 
     private final NexusAFKZone plugin;
     private final Map<UUID, Location[]> selections;
+    private final Map<String, Location[]> zones;
 
     public ZoneManager(NexusAFKZone plugin) {
         this.plugin = plugin;
-        selections = new HashMap<>();
+        this.selections = new HashMap<>();
+        this.zones = new HashMap<>();
+        loadZones();
     }
 
     public boolean deleteZone(String zoneName) {
+        zones.remove(zoneName);
         File zoneFile = new File(plugin.getDataFolder() + "/Zones", zoneName + ".yml");
         return zoneFile.delete();
     }
 
     public List<String> listZones() {
-        File zoneFolder = new File(plugin.getDataFolder() + "/Zones");
-        List<String> zones = new ArrayList<>();
-
-        if (zoneFolder.exists() && zoneFolder.isDirectory()) {
-            File[] files = zoneFolder.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile() && file.getName().endsWith(".yml")) {
-                        zones.add(file.getName().replace(".yml", ""));
-                    }
-                }
-            }
-        }
-
-        return zones;
+        return new ArrayList<>(zones.keySet());
     }
 
     public void setSelection(Player player, Location pos1, Location pos2) {
@@ -91,6 +81,7 @@ public class ZoneManager {
 
         try {
             config.save(zoneFile);
+            zones.put(zoneName, positions);
             player.sendMessage("Zone " + zoneName + " created successfully.");
         } catch (IOException e) {
             plugin.getLogger().severe("An error occurred while creating the zone: " + e.getMessage());
@@ -98,16 +89,26 @@ public class ZoneManager {
     }
 
     public Location[] getZoneBounds(String zoneName) {
-        File zoneFile = new File(plugin.getDataFolder() + "/Zones", zoneName + ".yml");
-        if (!zoneFile.exists()) {
-            return null;
+        return zones.get(zoneName);
+    }
+
+    public void clearZones() {
+        zones.clear();
+    }
+
+    public void loadZone(File zoneFile) {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(zoneFile);
+        String zoneName = config.getString("zone.name");
+        if (zoneName == null) {
+            plugin.getLogger().warning("Zone name not found in file: " + zoneFile.getName());
+            return;
         }
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(zoneFile);
         String worldName1 = config.getString("pos1.world");
         String worldName2 = config.getString("pos2.world");
         if (worldName1 == null || worldName2 == null) {
-            return null;
+            plugin.getLogger().warning("Invalid world names in zone file: " + zoneFile.getName());
+            return;
         }
 
         Location pos1 = new Location(
@@ -123,6 +124,30 @@ public class ZoneManager {
                 config.getDouble("pos2.z")
         );
 
-        return new Location[]{pos1, pos2};
+        zones.put(zoneName, new Location[]{pos1, pos2});
+        plugin.getLogger().info("Loaded zone: " + zoneName);
+    }
+
+    public void loadZones() {
+        clearZones();
+        File zonesDir = new File(plugin.getDataFolder(), "Zones");
+        if (!zonesDir.exists() || !zonesDir.isDirectory()) {
+            plugin.getLogger().warning("Zones directory not found. Skipping zone reload.");
+            return;
+        }
+
+        File[] zoneFiles = zonesDir.listFiles();
+        if (zoneFiles == null) {
+            plugin.getLogger().warning("No zone files found in zones directory.");
+            return;
+        }
+
+        for (File zoneFile : zoneFiles) {
+            if (zoneFile.isFile() && zoneFile.getName().endsWith(".yml")) {
+                loadZone(zoneFile);
+            }
+        }
+
+        plugin.getLogger().info("Zones reloaded successfully.");
     }
 }
