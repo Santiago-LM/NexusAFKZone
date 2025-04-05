@@ -3,6 +3,7 @@ package nexus.nexusAFKZone.managers;
 import nexus.nexusAFKZone.NexusAFKZone;
 import nexus.nexusAFKZone.utils.MessageUtils;
 import nexus.nexusAFKZone.utils.TimeFormat;
+import nexus.nexusAFKZone.utils.ZoneUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -49,6 +50,7 @@ public class RewardManager {
         }
         plugin.getLogger().info("Reloading rewards...");
         startRewardTask();
+        plugin.getLogger().info(MessageUtils.format(plugin.getMessagesConfig().getString("rewards-reloaded-success"))); // Confirmation message
     }
 
     private void startRewardTask() {
@@ -59,31 +61,41 @@ public class RewardManager {
                     Player player = Bukkit.getPlayer(playerUUID);
                     if (player == null) continue;
 
-                    long afkTime = (System.currentTimeMillis() - playerAFKTime.get(playerUUID)) / 1000;
-                    String zoneName = playerZones.get(playerUUID);
-                    if (zoneName == null) continue;
-
-                    ZoneManager zoneManager = plugin.getZoneManager();
-                    Location[] zoneBounds = zoneManager.getZoneBounds(zoneName);
-                    if (zoneBounds == null) continue;
-
-                    int zoneInterval = plugin.getConfig().getInt("auto-save-interval"); // Default to global interval
-                    if (plugin.getConfig().contains("Zones." + zoneName + ".interval")) {
-                        zoneInterval = plugin.getConfig().getInt("Zones." + zoneName + ".interval");
-                    }
-
-                    if (afkTime >= zoneInterval) {
-                        for (String reward : plugin.getConfig().getStringList("Zones." + zoneName + ".rewards")) {
-                            giveReward(player, reward);
-                        }
-                        String formattedTime = TimeFormat.formatTime(afkTime);
-                        player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("reward-message"), formattedTime));
-                        playerAFKTime.put(playerUUID, System.currentTimeMillis());
-                        plugin.getLogger().info("Reward given to player " + player.getName() + " in zone " + zoneName + " after being AFK for " + formattedTime);
-                    }
+                    handlePlayerAFK(player, playerUUID);
                 }
             }
         };
         rewardTask.runTaskTimer(plugin, 20, 20);
+    }
+
+    private void handlePlayerAFK(Player player, UUID playerUUID) {
+        long afkTime = (System.currentTimeMillis() - playerAFKTime.get(playerUUID)) / 1000;
+        String zoneName = playerZones.get(playerUUID);
+        if (zoneName == null) return;
+
+        ZoneManager zoneManager = plugin.getZoneManager();
+        Location[] zoneBounds = zoneManager.getZoneBounds(zoneName);
+        if (zoneBounds == null) return;
+
+        int zoneInterval = plugin.getConfig().getInt("auto-save-interval"); // Default to global interval
+        if (plugin.getConfig().contains("Zones." + zoneName + ".interval")) {
+            zoneInterval = plugin.getConfig().getInt("Zones." + zoneName + ".interval");
+        }
+
+        // Check if the player is still inside the zone before giving the reward
+        if (ZoneUtils.isInsideZone(player.getLocation(), zoneBounds[0], zoneBounds[1])) {
+            if (afkTime >= zoneInterval) {
+                for (String reward : plugin.getConfig().getStringList("Zones." + zoneName + ".rewards")) {
+                    giveReward(player, reward);
+                }
+                String formattedTime = TimeFormat.formatTime(afkTime);
+                player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("reward-message"), formattedTime));
+                playerAFKTime.put(playerUUID, System.currentTimeMillis());
+                plugin.getLogger().info("Reward given to player " + player.getName() + " in zone " + zoneName + " after being AFK for " + formattedTime);
+            }
+        } else {
+            // Remove player from AFK status if they are no longer in the zone
+            removePlayerAFK(player);
+        }
     }
 }

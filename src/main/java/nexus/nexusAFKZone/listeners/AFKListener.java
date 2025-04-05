@@ -3,6 +3,7 @@ package nexus.nexusAFKZone.listeners;
 import nexus.nexusAFKZone.NexusAFKZone;
 import nexus.nexusAFKZone.managers.ZoneManager;
 import nexus.nexusAFKZone.utils.MessageUtils;
+import nexus.nexusAFKZone.utils.ZoneUtils;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,26 +42,13 @@ public class AFKListener implements Listener {
             Location pos1 = zoneBounds[0];
             Location pos2 = zoneBounds[1];
 
-            if (isInsideZone(to, pos1, pos2) && !isInsideZone(from, pos1, pos2)) {
+            if (ZoneUtils.isInsideZone(to, pos1, pos2) && !ZoneUtils.isInsideZone(from, pos1, pos2)) {
                 player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-entered"), zoneName));
-                plugin.getRewardManager().setPlayerAFK(player, zoneName); // Pass both player and zoneName
-            } else if (!isInsideZone(to, pos1, pos2) && isInsideZone(from, pos1, pos2)) {
+                plugin.getRewardManager().setPlayerAFK(player, zoneName);
+            } else if (!ZoneUtils.isInsideZone(to, pos1, pos2) && ZoneUtils.isInsideZone(from, pos1, pos2)) {
                 player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-exited"), zoneName));
                 plugin.getRewardManager().removePlayerAFK(player);
             }
         });
-    }
-
-    private boolean isInsideZone(Location loc, Location pos1, Location pos2) {
-        double minX = Math.min(pos1.getX(), pos2.getX());
-        double minY = Math.min(pos1.getY(), pos2.getY());
-        double minZ = Math.min(pos1.getZ(), pos2.getZ());
-        double maxX = Math.max(pos1.getX(), pos2.getX());
-        double maxY = Math.max(pos1.getY(), pos2.getY());
-        double maxZ = Math.max(pos1.getZ(), pos2.getZ());
-
-        return loc.getX() >= minX && loc.getX() <= maxX &&
-                loc.getY() >= minY && loc.getY() <= maxY &&
-                loc.getZ() >= minZ && loc.getZ() <= maxZ;
     }
 }
