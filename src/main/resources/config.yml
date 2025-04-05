@@ -1,0 +1,9 @@
+# Global Settings
+default-wand: BLAZE_ROD
+auto-save-interval: 300 # Seconds
+time-format: "mm:ss"
+
+# Default Rewards (applied if no zone-specific rewards exist)
+default-rewards:
+  - "eco give %player% 10"
+  - "give %player% diamond 1"

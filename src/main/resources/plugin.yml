@@ -1,4 +1,24 @@
 name: NexusAFKZone
-version: '1.0-SNAPSHOT'
 main: nexus.nexusAFKZone.NexusAFKZone
-api-version: '1.20'
+version: 1.0
+api-version: 1.16
+commands:
+  afkzone:
+    description: AFK Zone commands
+    usage: /afkzone <subcommand>
+permissions:
+  nexusafkzone.command.create:
+    description: Allows creating an AFK zone
+    default: op
+  nexusafkzone.command.delete:
+    description: Allows deleting an AFK zone
+    default: op
+  nexusafkzone.command.reload:
+    description: Allows reloading the plugin
+    default: op
+  nexusafkzone.command.list:
+    description: Allows listing all AFK zones
+    default: op
+  nexusafkzone.zone.<zonename>:
+    description: Permission to enter specific AFK zone
+    default: op
