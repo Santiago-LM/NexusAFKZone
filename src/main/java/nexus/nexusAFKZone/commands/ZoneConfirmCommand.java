@@ -3,13 +3,11 @@ package nexus.nexusAFKZone.commands;
 import nexus.nexusAFKZone.NexusAFKZone;
 import nexus.nexusAFKZone.managers.ZoneManager;
 import nexus.nexusAFKZone.utils.MessageUtils;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class ZoneConfirmCommand implements CommandExecutor {
@@ -25,16 +23,14 @@ public class ZoneConfirmCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (sender instanceof Player player) {
-            Location[] selection = zoneManager.getSelection(player);
-            if (selection != null && selection[0] != null && selection[1] != null) {
-                String zoneName = args.length > 0 ? args[0] : "default-zone";
-                zoneName = zoneManager.confirmZone(zoneName, selection[0], selection[1]);
-                player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-create-success"), zoneName));
-                zoneManager.clearSelection(player);
-                removeWandFromInventory(player);
-            } else {
+            String zoneName = zoneManager.confirmZone(player); // Ensure confirmZone is called
+            if (zoneName == null) {
                 player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-create-failure")));
+                return true;
             }
+            player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-create-success"), zoneName));
+            zoneManager.clearSelection(player);
+            removeWandFromInventory(player);
             return true;
         } else {
             sender.sendMessage("This command can only be used by players.");
@@ -44,7 +40,6 @@ public class ZoneConfirmCommand implements CommandExecutor {
     }
 
     private void removeWandFromInventory(Player player) {
-        ItemStack wand = new ItemStack(Material.BLAZE_ROD); // Assuming the wand is a blaze rod
-        player.getInventory().remove(wand);
+        player.getInventory().remove(Material.BLAZE_ROD); // Assuming the wand is a blaze rod
     }
 }

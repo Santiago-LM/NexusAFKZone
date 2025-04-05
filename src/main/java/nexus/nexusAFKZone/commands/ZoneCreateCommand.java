@@ -27,7 +27,7 @@ public class ZoneCreateCommand implements CommandExecutor {
             if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
                 if (player.hasPermission("nexusafkzone.command.create")) {
                     String zoneName = args[1];
-                    plugin.getZoneManager().createZone(player, zoneName);
+                    plugin.getZoneManager().setPendingZoneName(player, zoneName); // Store the zone name in the pending map
                     giveDefaultWand(player, zoneName);
                     player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("zone-create-initiate"), zoneName));
                 } else {

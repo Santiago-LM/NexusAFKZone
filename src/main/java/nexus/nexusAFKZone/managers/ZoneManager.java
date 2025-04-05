@@ -14,11 +14,13 @@ public class ZoneManager {
     private final NexusAFKZone plugin;
     private final Map<UUID, Location[]> selections;
     private final Map<String, Location[]> zones;
+    private final Map<UUID, String> pendingZoneNames; // Store pending zone names
 
     public ZoneManager(NexusAFKZone plugin) {
         this.plugin = plugin;
         this.selections = new HashMap<>();
         this.zones = new HashMap<>();
+        this.pendingZoneNames = new HashMap<>(); // Initialize the map
         loadZones();
     }
 
@@ -40,6 +42,18 @@ public class ZoneManager {
         return selections.get(player.getUniqueId());
     }
 
+    public void setPendingZoneName(Player player, String zoneName) {
+        pendingZoneNames.put(player.getUniqueId(), zoneName);
+    }
+
+    public String getPendingZoneName(Player player) {
+        return pendingZoneNames.get(player.getUniqueId());
+    }
+
+    public void clearPendingZoneName(Player player) {
+        pendingZoneNames.remove(player.getUniqueId());
+    }
+
     public void createZone(Player player, String zoneName) {
         Location[] positions = selections.get(player.getUniqueId());
         if (positions == null || positions[0] == null || positions[1] == null) {
@@ -53,44 +67,26 @@ public class ZoneManager {
             return;
         }
 
-        YamlConfiguration config = new YamlConfiguration();
-        config.set("enabled", true);
-        config.set("permission", "nexusafkzone.zone." + zoneName);
+        saveZone(zoneName, positions[0], positions[1]); // Call saveZone to save the zone
 
-        String pos1WorldName = positions[0].getWorld() != null ? positions[0].getWorld().getName() : null;
-        String pos2WorldName = positions[1].getWorld() != null ? positions[1].getWorld().getName() : null;
-
-        if (pos1WorldName == null || pos2WorldName == null) {
-            player.sendMessage("Error: One or both positions have an invalid world.");
-            return;
-        }
-
-        config.set("pos1.world", pos1WorldName);
-        config.set("pos1.x", positions[0].getX());
-        config.set("pos1.y", positions[0].getY());
-        config.set("pos1.z", positions[0].getZ());
-        config.set("pos2.world", pos2WorldName);
-        config.set("pos2.x", positions[1].getX());
-        config.set("pos2.y", positions[1].getY());
-        config.set("pos2.z", positions[1].getZ());
-        config.set("rewards", plugin.getConfig().getStringList("default-rewards"));
-        config.set("interval", plugin.getConfig().getInt("auto-save-interval"));
-        config.set("messages.bossbar", "&6AFK in %zone% | Next reward in: %time%");
-        config.set("messages.actionbar", "&a+%reward% in %time%");
-        config.set("messages.chat", "&eYou earned %reward%!");
-
-        try {
-            config.save(zoneFile);
-            zones.put(zoneName, positions);
-            player.sendMessage("Zone " + zoneName + " created successfully.");
-        } catch (IOException e) {
-            plugin.getLogger().severe("An error occurred while creating the zone: " + e.getMessage());
-        }
+        zones.put(zoneName, positions);
+        clearPendingZoneName(player); // Clear the pending zone name after creation
+        player.sendMessage("Zone " + zoneName + " created successfully.");
     }
 
-    public String confirmZone(String zoneName, Location pos1, Location pos2) {
-        zones.put(zoneName, new Location[]{pos1, pos2});
-        saveZone(zoneName, pos1, pos2);
+    public String confirmZone(Player player) {
+        String zoneName = getPendingZoneName(player); // Retrieve the pending zone name
+        if (zoneName == null) {
+            player.sendMessage("No zone name found. Please use /afkzone create <name> first.");
+            return null;
+        }
+        Location[] positions = selections.get(player.getUniqueId());
+        if (positions == null || positions[0] == null || positions[1] == null) {
+            player.sendMessage("You must select both positions first.");
+            return null;
+        }
+        createZone(player, zoneName); // Call createZone to handle the zone creation
+        clearPendingZoneName(player); // Clear the pending zone name after confirmation
         return zoneName;
     }
 
