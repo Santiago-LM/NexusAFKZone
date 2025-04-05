@@ -8,7 +8,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class ZoneCreateCommand implements CommandExecutor {
 
@@ -25,15 +28,7 @@ public class ZoneCreateCommand implements CommandExecutor {
                 if (player.hasPermission("nexusafkzone.command.create")) {
                     String zoneName = args[1];
                     plugin.getZoneManager().createZone(player, zoneName);
-                } else {
-                    player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("no-permission")));
-                }
-                return true;
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("wand")) {
-                if (player.hasPermission("nexusafkzone.command.create")) {
-                    ItemStack wand = new ItemStack(Material.valueOf(plugin.getConfig().getString("default-wand")));
-                    player.getInventory().addItem(wand);
-                    player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("wand-received")));
+                    giveDefaultWand(player);
                 } else {
                     player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("no-permission")));
                 }
@@ -44,5 +39,26 @@ public class ZoneCreateCommand implements CommandExecutor {
         }
 
         return false;
+    }
+
+    private void giveDefaultWand(Player player) {
+        String wandMaterialName = plugin.getConfig().getString("default-wand.material", "BLAZE_ROD");
+        Material wandMaterial = Material.getMaterial(wandMaterialName.toUpperCase());
+        if (wandMaterial == null) {
+            wandMaterial = Material.BLAZE_ROD;
+        }
+
+        ItemStack wand = new ItemStack(wandMaterial);
+        ItemMeta meta = wand.getItemMeta();
+        if (meta != null) {
+            String displayName = plugin.getConfig().getString("default-wand.display-name", "&6AFK Zone Selector");
+            meta.setDisplayName(displayName);
+            List<String> lore = plugin.getConfig().getStringList("default-wand.lore");
+            meta.setLore(lore);
+            wand.setItemMeta(meta);
+        }
+
+        player.getInventory().addItem(wand);
+        player.sendMessage(MessageUtils.format(plugin.getMessagesConfig().getString("wand-received")));
     }
 }

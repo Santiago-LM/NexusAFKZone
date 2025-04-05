@@ -1,5 +1,12 @@
 # Global Settings
-default-wand: BLAZE_ROD
+default-wand:
+  material: BLAZE_ROD
+  display-name: "&6AFK Zone Selector"
+  lore:
+    - "&7Use this wand to select"
+    - "&7the corners of your"
+    - "&7AFK zone."
+
 auto-save-interval: 300 # Seconds
 time-format: "mm:ss"
 

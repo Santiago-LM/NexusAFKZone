@@ -25,7 +25,7 @@ public class SelectionListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        if (item.getType() == Material.valueOf(plugin.getConfig().getString("default-wand"))) {
+        if (item.getType() == getDefaultWandMaterial()) {
             if (event.getClickedBlock() == null) {
                 return;
             }
@@ -46,6 +46,16 @@ public class SelectionListener implements Listener {
             }
             event.setCancelled(true);
         }
+    }
+
+    private Material getDefaultWandMaterial() {
+        String materialName = plugin.getConfig().getString("default-wand.material", "BLAZE_ROD");
+        Material material = Material.getMaterial(materialName.toUpperCase());
+        if (material == null) {
+            plugin.getLogger().warning("Invalid default wand material in config.yml: " + materialName);
+            material = Material.BLAZE_ROD;
+        }
+        return material;
     }
 
     private String formatLocation(Location loc) {
